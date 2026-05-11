@@ -1,13 +1,12 @@
-from functools import lru_cache
 import os
 from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pymongo import MongoClient
 from pymongo.errors import PyMongoError
 
+from .database import get_database_name, get_mongo_client
 from .routes import router
 
 load_dotenv(Path(__file__).resolve().parents[2] / '.env')
@@ -29,14 +28,6 @@ app.add_middleware(
 app.include_router(router)
 
 
-@lru_cache(maxsize=1)
-def get_mongo_client() -> MongoClient:
-    mongodb_uri = os.getenv('MONGODB_URI')
-    if not mongodb_uri:
-        raise RuntimeError('MONGODB_URI is not configured.')
-    return MongoClient(mongodb_uri, serverSelectionTimeoutMS=3000)
-
-
 @app.get('/api/health')
 def health_check() -> dict[str, object]:
     backend_status = 'connected'
@@ -46,8 +37,7 @@ def health_check() -> dict[str, object]:
     try:
         client = get_mongo_client()
         client.admin.command('ping')
-        default_database = client.get_default_database()
-        database_name = default_database.name if default_database is not None else None
+        database_name = get_database_name()
         database_status = 'connected'
     except (PyMongoError, RuntimeError):
         database_status = 'disconnected'
