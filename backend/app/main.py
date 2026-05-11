@@ -8,12 +8,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError
 
+from .routes import router
+
 load_dotenv(Path(__file__).resolve().parents[2] / '.env')
 
 frontend_port = os.getenv('FRONTEND_PORT', '5173')
 backend_port = os.getenv('BACKEND_PORT', '8000')
 
-app = FastAPI(title='Boilerplate API')
+app = FastAPI(title='Hospital Appointment Management API')
 
 app.add_middleware(
     CORSMiddleware,
@@ -22,6 +24,9 @@ app.add_middleware(
     allow_methods=['*'],
     allow_headers=['*'],
 )
+
+# Include all routes
+app.include_router(router)
 
 
 @lru_cache(maxsize=1)
