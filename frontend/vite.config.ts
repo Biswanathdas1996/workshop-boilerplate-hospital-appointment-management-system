@@ -10,14 +10,14 @@ const projectRoot = resolve(frontendRoot, '..')
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, projectRoot, '')
   const frontendPort = Number(env.FRONTEND_PORT || '5173')
-  const backendPort = Number(env.BACKEND_PORT || '8000')
+  const backendPort = Number(env.BACKEND_PORT || '8001')
 
   return {
     plugins: [react()],
     server: {
       port: frontendPort,
       proxy: {
-        '/api': `http://localhost:${backendPort}`,
+        '/api': `http://127.0.0.1:${backendPort}`,
       },
     },
   }
