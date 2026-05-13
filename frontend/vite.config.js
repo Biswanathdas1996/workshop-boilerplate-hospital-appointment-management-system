@@ -9,13 +9,13 @@ export default defineConfig(function (_a) {
     var mode = _a.mode;
     var env = loadEnv(mode, projectRoot, '');
     var frontendPort = Number(env.FRONTEND_PORT || '5173');
-    var backendPort = Number(env.BACKEND_PORT || '8000');
+    var backendPort = Number(env.BACKEND_PORT || '8001');
     return {
         plugins: [react()],
         server: {
             port: frontendPort,
             proxy: {
-                '/api': "http://localhost:".concat(backendPort),
+                '/api': "http://127.0.0.1:".concat(backendPort),
             },
         },
     };
