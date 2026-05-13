@@ -16,11 +16,32 @@ async def register(user_data: UserCreate):
         )
 
     hashed_password = get_password_hash(user_data.password)
-    user_dict = user_data.model_dump()
+    doctor_fields = {"specialty", "department", "qualification", "experience_years", "consultation_fee"}
+    user_dict = {k: v for k, v in user_data.model_dump().items() if k not in doctor_fields}
     user_dict["password"] = hashed_password
 
     created_user = UserDB.create(user_dict)
     del created_user["password"]
+
+    # Auto-create a minimal patient profile for patient-role users
+    if created_user.get("role") == UserRole.PATIENT.value:
+        PatientDB.create({
+            "user_id": created_user["id"],
+            "date_of_birth": "",
+            "gender": "",
+            "address": "",
+        })
+
+    # Auto-create a doctor profile for doctor-role users
+    if created_user.get("role") == UserRole.DOCTOR.value:
+        DoctorDB.create({
+            "user_id": created_user["id"],
+            "specialty": user_data.specialty or "",
+            "department": user_data.department or "general",
+            "qualification": user_data.qualification or "",
+            "experience_years": user_data.experience_years or 0,
+            "consultation_fee": user_data.consultation_fee or 0.0,
+        })
 
     access_token = create_access_token(
         data={"sub": created_user["id"], "email": created_user["email"], "role": created_user["role"]}

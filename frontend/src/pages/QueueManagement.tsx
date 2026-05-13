@@ -45,7 +45,7 @@ const QueueManagement: React.FC = () => {
 
   const fetchDoctors = async () => {
     try {
-      const response = await apiClient.get('/doctors');
+      const response = await apiClient.get('/doctors/');
       setDoctors(response.data);
       if (response.data.length > 0) {
         setSelectedDoctor(response.data[0].id);

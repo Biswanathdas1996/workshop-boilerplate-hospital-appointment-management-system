@@ -26,7 +26,7 @@ const Appointments: React.FC = () => {
 
   const fetchAppointments = async () => {
     try {
-      const response = await apiClient.get('/appointments');
+      const response = await apiClient.get('/appointments/');
       let data = response.data;
 
       if (filter !== 'all') {

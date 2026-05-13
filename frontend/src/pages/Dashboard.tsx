@@ -17,9 +17,9 @@ const Dashboard: React.FC = () => {
       try {
         if (user?.role === 'patient') {
           const [appointmentsRes, prescriptionsRes, visitsRes] = await Promise.all([
-            apiClient.get('/appointments'),
-            apiClient.get('/prescriptions'),
-            apiClient.get('/visits'),
+            apiClient.get('/appointments/'),
+            apiClient.get('/prescriptions/'),
+            apiClient.get('/visits/'),
           ]);
           setStats({
             appointments: appointmentsRes.data.length,
@@ -30,7 +30,7 @@ const Dashboard: React.FC = () => {
         } else if (user?.role === 'doctor') {
           const today = new Date().toISOString().split('T')[0];
           const [appointmentsRes] = await Promise.all([
-            apiClient.get(`/appointments?date=${today}`),
+            apiClient.get(`/appointments/?date=${today}`),
           ]);
           setStats({
             appointments: appointmentsRes.data.length,

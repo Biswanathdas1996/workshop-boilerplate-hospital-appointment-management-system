@@ -50,6 +50,12 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
+    # Doctor-specific fields (only used when role == doctor)
+    specialty: Optional[str] = None
+    department: Optional[str] = None
+    qualification: Optional[str] = None
+    experience_years: Optional[int] = None
+    consultation_fee: Optional[float] = None
 
 
 class UserLogin(BaseModel):
@@ -119,6 +125,7 @@ class DoctorCreate(DoctorBase):
 class Doctor(DoctorBase):
     id: str
     created_at: datetime
+    full_name: Optional[str] = None
 
 
 class DoctorScheduleBase(BaseModel):

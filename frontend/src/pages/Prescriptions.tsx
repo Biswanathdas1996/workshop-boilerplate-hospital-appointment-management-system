@@ -26,7 +26,7 @@ const Prescriptions: React.FC = () => {
 
   const fetchPrescriptions = async () => {
     try {
-      const response = await apiClient.get('/prescriptions');
+      const response = await apiClient.get('/prescriptions/');
       setPrescriptions(response.data);
     } catch (error) {
       console.error('Failed to fetch prescriptions:', error);

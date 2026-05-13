@@ -6,6 +6,7 @@ import apiClient from '../api/client';
 interface Doctor {
   id: string;
   user_id: string;
+  full_name?: string;
   specialty: string;
   department: string;
   qualification: string;
@@ -23,7 +24,7 @@ const BookAppointment: React.FC = () => {
     appointment_date: '',
     appointment_time: '',
     reason: '',
-    department: 'general',
+    department: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -51,7 +52,7 @@ const BookAppointment: React.FC = () => {
 
   const fetchDoctors = async () => {
     try {
-      const response = await apiClient.get('/doctors');
+      const response = await apiClient.get('/doctors/');
       setDoctors(response.data);
     } catch (error) {
       console.error('Failed to fetch doctors:', error);
@@ -76,7 +77,7 @@ const BookAppointment: React.FC = () => {
     setLoading(true);
 
     try {
-      await apiClient.post('/appointments', {
+      await apiClient.post('/appointments/', {
         ...formData,
         patient_id: patientId,
         status: 'scheduled',
@@ -106,9 +107,9 @@ const BookAppointment: React.FC = () => {
           <label>Department</label>
           <select
             value={formData.department}
-            onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-            required
+            onChange={(e) => setFormData({ ...formData, department: e.target.value, doctor_id: '' })}
           >
+            <option value="">All Departments</option>
             <option value="general">General</option>
             <option value="cardiology">Cardiology</option>
             <option value="neurology">Neurology</option>
@@ -127,10 +128,10 @@ const BookAppointment: React.FC = () => {
           >
             <option value="">Choose a doctor</option>
             {doctors
-              .filter((doc) => doc.department === formData.department)
+              .filter((doc) => !formData.department || doc.department === formData.department)
               .map((doctor) => (
                 <option key={doctor.id} value={doctor.id}>
-                  {doctor.specialty} - {doctor.qualification} ({doctor.experience_years} years exp)
+                  {doctor.full_name ? `Dr. ${doctor.full_name} — ` : ''}{doctor.specialty} - {doctor.qualification} ({doctor.experience_years} years exp)
                 </option>
               ))}
           </select>

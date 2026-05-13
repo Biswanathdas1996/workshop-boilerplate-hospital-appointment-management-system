@@ -10,6 +10,11 @@ const Login: React.FC = () => {
     full_name: '',
     phone: '',
     role: 'patient',
+    specialty: '',
+    department: '',
+    qualification: '',
+    experience_years: '',
+    consultation_fee: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -25,11 +30,25 @@ const Login: React.FC = () => {
       if (isLogin) {
         await login(formData.email, formData.password);
       } else {
-        await register(formData);
+        const { experience_years, consultation_fee, specialty, department, qualification, ...base } = formData;
+        const payload: any = { ...base };
+        if (formData.role === 'doctor') {
+          payload.specialty = specialty;
+          payload.department = department;
+          payload.qualification = qualification;
+          payload.experience_years = experience_years !== '' ? parseInt(experience_years, 10) : 0;
+          payload.consultation_fee = consultation_fee !== '' ? parseFloat(consultation_fee) : 0;
+        }
+        await register(payload);
       }
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'An error occurred');
+      const detail = err.response?.data?.detail;
+      if (Array.isArray(detail)) {
+        setError(detail.map((d: any) => d.msg).join('; '));
+      } else {
+        setError(detail || 'An error occurred');
+      }
     } finally {
       setLoading(false);
     }
@@ -76,6 +95,68 @@ const Login: React.FC = () => {
                   <option value="admin">Admin</option>
                 </select>
               </div>
+
+              {formData.role === 'doctor' && (
+                <>
+                  <div className="form-group">
+                    <label>Department</label>
+                    <select
+                      value={formData.department}
+                      onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                      required
+                    >
+                      <option value="">Select department</option>
+                      <option value="general">General</option>
+                      <option value="cardiology">Cardiology</option>
+                      <option value="neurology">Neurology</option>
+                      <option value="pediatrics">Pediatrics</option>
+                      <option value="orthopedics">Orthopedics</option>
+                      <option value="diagnostic">Diagnostic</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Specialty</label>
+                    <input
+                      type="text"
+                      value={formData.specialty}
+                      onChange={(e) => setFormData({ ...formData, specialty: e.target.value })}
+                      placeholder="e.g. Cardiologist"
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Qualification</label>
+                    <input
+                      type="text"
+                      value={formData.qualification}
+                      onChange={(e) => setFormData({ ...formData, qualification: e.target.value })}
+                      placeholder="e.g. MD, FACC"
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Years of Experience</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={formData.experience_years}
+                      onChange={(e) => setFormData({ ...formData, experience_years: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Consultation Fee ($)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={formData.consultation_fee}
+                      onChange={(e) => setFormData({ ...formData, consultation_fee: e.target.value })}
+                      required
+                    />
+                  </div>
+                </>
+              )}
             </>
           )}
 

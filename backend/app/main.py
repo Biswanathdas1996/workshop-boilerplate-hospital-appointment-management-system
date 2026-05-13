@@ -30,7 +30,8 @@ app = FastAPI(
     title='Hospital Appointment Management System API',
     description='Complete healthcare management system with patient registration, appointments, queue management, and more',
     version='1.0.0',
-    lifespan=lifespan
+    lifespan=lifespan,
+    redirect_slashes=False
 )
 
 app.add_middleware(

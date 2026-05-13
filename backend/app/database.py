@@ -155,14 +155,26 @@ class DoctorDB:
     @staticmethod
     def get_by_user_id(user_id: str) -> Optional[dict]:
         db = get_database()
-        doctor = db.doctors.find_one({"user_id": user_id})
-        return serialize_doc(doctor)
+        doctor = serialize_doc(db.doctors.find_one({"user_id": user_id}))
+        return DoctorDB._enrich_with_name(doctor)
 
     @staticmethod
     def get_by_id(doctor_id: str) -> Optional[dict]:
         db = get_database()
-        doctor = db.doctors.find_one({"_id": ObjectId(doctor_id)})
-        return serialize_doc(doctor)
+        doctor = serialize_doc(db.doctors.find_one({"_id": ObjectId(doctor_id)}))
+        return DoctorDB._enrich_with_name(doctor)
+
+    @staticmethod
+    def _enrich_with_name(doctor: Optional[dict]) -> Optional[dict]:
+        if doctor is None:
+            return None
+        try:
+            user = get_database().users.find_one({"_id": ObjectId(doctor["user_id"])})
+            if user:
+                doctor["full_name"] = user.get("full_name", "")
+        except Exception:
+            pass
+        return doctor
 
     @staticmethod
     def get_all(department: Optional[str] = None, specialty: Optional[str] = None) -> List[dict]:
@@ -172,8 +184,21 @@ class DoctorDB:
             query["department"] = department
         if specialty:
             query["specialty"] = {"$regex": specialty, "$options": "i"}
-        doctors = db.doctors.find(query)
-        return serialize_docs(list(doctors))
+        pipeline = [
+            {"$match": query},
+            {
+                "$lookup": {
+                    "from": "users",
+                    "let": {"uid": {"$toObjectId": "$user_id"}},
+                    "pipeline": [{"$match": {"$expr": {"$eq": ["$_id", "$$uid"]}}}],
+                    "as": "user"
+                }
+            },
+            {"$unwind": {"path": "$user", "preserveNullAndEmptyArrays": True}},
+            {"$addFields": {"full_name": {"$ifNull": ["$user.full_name", ""]}}},
+            {"$unset": "user"}
+        ]
+        return serialize_docs(list(db.doctors.aggregate(pipeline)))
 
 
 class DoctorScheduleDB:
